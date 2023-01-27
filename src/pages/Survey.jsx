@@ -1,34 +1,25 @@
 import { Link, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import { Loader } from '../utils/Atoms';
+import { useFetch } from '../utils/hooks';
 
 function Survey() {
   const { questionNumber } = useParams();
   const questionIndex = Number.parseInt(questionNumber);
-  const [questions, setQuestions] = useState({});
-  const [isDataLoading, setDataLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('http://localhost:8000/survey').then((response) =>
-      response
-        .json()
-        .then(({ surveyData }) => {
-          setQuestions(surveyData);
-          setDataLoading(false);
-        })
-        .catch((error) => console.error(error))
-    );
-  }, []);
+  const { isLoading, data, error } = useFetch('http://localhost:8000/survey');
+  const { surveyData } = data;
+  if (error) {
+    return <p>Une erreur est survenue lors du charhgement des questions.</p>;
+  }
   return (
     <div>
       <h1>Questionnaire 🧮</h1>
       <h2>Question {questionIndex}</h2>
-      {isDataLoading ? <Loader /> : <p>{questions[questionIndex]}</p>}
+      {isLoading ? <Loader /> : <p>{surveyData[questionIndex]}</p>}
       <nav>
         {questionIndex > 1 && (
           <Link to={`/survey/${questionIndex - 1}`}>Précédente</Link>
         )}
-        {questions[questionIndex + 1] ? (
+        {surveyData && surveyData[questionIndex + 1] ? (
           <Link to={`/survey/${questionIndex + 1}`}>Suivante</Link>
         ) : (
           <Link to="/results">Résultats</Link>
